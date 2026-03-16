@@ -1,0 +1,18 @@
+# Dossiers générés par le compilateur
+bin/
+out/
+target/
+
+# Données brutes (DBLP)
+data/
+*.xml
+*.gz
+*.dtd
+
+# Fichiers système macOS
+.DS_Store
+
+# Configuration des éditeurs de texte
+.vscode/
+.idea/
+*.iml
