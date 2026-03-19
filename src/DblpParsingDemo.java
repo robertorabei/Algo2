@@ -1,4 +1,4 @@
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -23,7 +23,7 @@ public class DblpParsingDemo {
         Path xmlPath = Paths.get(args[0]);
         Path dtdPath = Paths.get(args[1]);
 
-        long limit = Long.MAX_VALUE; // optionnel: s'arrêter après N publications
+        long limit = Long.MAX_VALUE;
         for (int i = 2; i < args.length; i++) {
             String a = args[i];
             if (a.startsWith("--limit=")) limit = Long.parseLong(a.substring("--limit=".length()));
@@ -60,42 +60,25 @@ public class DblpParsingDemo {
         long pubCount = 0;
 
         // --------------------------------------------------------------------
-        // On crée le générateur DBLP dans un try-with-resources :
-        //   - le constructeur démarre un thread de parsing en arrière-plan ;
-        //   - les publications "parsé(e)s" sont déposées dans une file (queue) ;
-        //   - gen.nextPublication() consomme cette file au fur et à mesure.
-        //
-        // Le try-with-resources garantit que gen.close() est appelé à la fin,
-        // ce qui permet d'arrêter proprement le thread de parsing et de libérer
-        // les ressources.
+        
         // --------------------------------------------------------------------
         try (DblpPublicationGenerator gen = new DblpPublicationGenerator(xmlPath, dtdPath, 256)) {
-            // Boucle de consommation : on traite les publications une par une,
-            // jusqu'à atteindre la limite (si fournie) ou la fin du fichier.
             while (pubCount < limit) {
-                
-                // nextPublication() renvoie :
-                //   - Optional.of(pub) si une publication est disponible ;
-                //   - Optional.empty() si on a atteint la fin du flux (EOF).
-                //
-                // Cela évite d'utiliser null et oblige à gérer explicitement le cas EOF.
                 Optional<DblpPublicationGenerator.Publication> opt = gen.nextPublication();
-                if (opt.isEmpty()) break; // EOF
+                if (opt.isEmpty()) break; 
 
                 pubCount++;
                 DblpPublicationGenerator.Publication p = opt.get();
 
                 List<String> authors = p.authors;
+                
+                // On ignore les publications sans auteurs
                 if (authors == null || authors.isEmpty()) {
                     continue;
                 }
 
                 int k = authors.size();
-                // 1er auteur
-                String first = authors.get(0);
-
-                // autres auteurs (peut être vide si k == 1)
-                List<String> others = (k > 1) ? authors.subList(1, k) : List.of();
+                System.out.println("Publication #" + pubCount + " (" + k + " auteur(s)):" + authors);
             }
         }
     }

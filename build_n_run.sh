@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+LIMIT=${1:-100000}
 SRC_DIR="src"
 BIN_DIR="bin"
 DATA_DIR="data"
@@ -16,7 +17,7 @@ if [ $? -eq 0 ]; then
     java -Xmx2g -cp $BIN_DIR DblpParsingDemo \
         $DATA_DIR/dblp-2026-01-01.xml.gz \
         $DATA_DIR/dblp.dtd \
-        --limit=1000
+        --limit="$LIMIT"
 else
     echo "Erreur de compilation."
 fi
