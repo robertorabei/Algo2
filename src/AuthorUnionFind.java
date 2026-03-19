@@ -26,7 +26,7 @@ public class AuthorUnionFind {
 
     private void ensureCapacity(int id) {
         if (id >= parent.length) {
-            int newSize = Math.max(id + 1, parent.length * 2);
+            int newSize = Math.max(id + 1, parent.length * 2); 
             parent = Arrays.copyOf(parent, newSize);
             size = Arrays.copyOf(size, newSize);
         }

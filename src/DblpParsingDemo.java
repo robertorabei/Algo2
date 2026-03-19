@@ -2,14 +2,10 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-/**
- * Usage:
- *   java -Xmx2g DblpParsingDemo <dblp.xml|dblp.xml.gz> <dblp.dtd> [--limit=1000000]
- */
 public class DblpParsingDemo {
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+       if (args.length < 2) {
             System.err.println("""
                 Usage:
                   java -Xmx2g DblpParsingDemo <dblp.xml|dblp.xml.gz> <dblp.dtd> [--limit=1000000]
@@ -57,55 +53,116 @@ public class DblpParsingDemo {
         System.out.println("DTD: " + dtdPath);
         if (limit != Long.MAX_VALUE) System.out.println("Limit: " + limit);
 
-        long pubCount = 0;
+        // --- 2. Structures de données ---
         Map<String, Integer> authorToId = new HashMap<>();
+        Map<Integer, String> idToAuthor = new HashMap<>(); // Pour afficher les noms à la fin
         int nextId = 0;
-        AuthorUnionFind uf = new AuthorUnionFind(100000);
 
-        try (DblpPublicationGenerator gen = new DblpPublicationGenerator(xmlPath, dtdPath, 256)) {
+        // Tâche 1 : Union-Find
+        AuthorUnionFind uf = new AuthorUnionFind(1024);
+
+        // Tâche 2 : Comptage paires orientées (Online)
+        // ID_A -> {ID_B -> Compteur}
+        Map<Integer, Map<Integer, Integer>> edgeCounts = new HashMap<>();
+
+        System.out.println("🚀 Démarrage du parsing...");
+
+        // --- 3. Boucle de Parsing (Online) ---
+        try (DblpPublicationGenerator gen = new DblpPublicationGenerator(xmlPath, dtdPath, 512)) {
+            long pubCount = 0;
             while (pubCount < limit) {
                 Optional<DblpPublicationGenerator.Publication> opt = gen.nextPublication();
-                if (opt.isEmpty()) break; 
+                if (opt.isEmpty()) break;
 
                 pubCount++;
-
-                if (pubCount % 100000 == 0) {
-                    System.out.println("\n--- État à " + pubCount + " publications ---");
-                    System.out.println("Communautés : " + uf.getCount());
-                    System.out.println("Top 10 tailles : " + uf.getTopCommunitySizes(10));
-                }
                 DblpPublicationGenerator.Publication p = opt.get();
-
                 List<String> authors = p.authors;
-                // On ignore les publications sans auteurs
-                if (authors == null || authors.isEmpty()) {
-                    continue;
+
+                if (authors == null || authors.isEmpty()) continue;
+
+                // A. Enregistrement des auteurs (Indispensable avant la suite)
+                int[] ids = new int[authors.size()];
+                for (int i = 0; i < authors.size(); i++) {
+                    String name = authors.get(i);
+                    if (!authorToId.containsKey(name)) {
+                        authorToId.put(name, nextId);
+                        idToAuthor.put(nextId, name);
+                        uf.addAuthor(nextId);
+                        nextId++;
+                    }
+                    ids[i] = authorToId.get(name);
                 }
 
-                for (String name : authors) {
-                    if (!authorToId.containsKey(name)) {
-                        int id = nextId++;
-                        authorToId.put(name, id);
-                        uf.addAuthor(id); 
+                // B. Tâche 1 : Union-Find (Non-orienté)
+                int firstId = ids[0];
+                for (int i = 1; i < ids.length; i++) {
+                    uf.union(firstId, ids[i]);
+                }
+
+                // C. Tâche 2 : Comptage A -> B (Online)
+                if (ids.length >= 2) {
+                    Map<Integer, Integer> neighbors = edgeCounts.computeIfAbsent(firstId, k -> new HashMap<>());
+                    for (int i = 1; i < ids.length; i++) {
+                        int idB = ids[i];
+                        neighbors.put(idB, neighbors.getOrDefault(idB, 0) + 1);
                     }
                 }
 
-                int firstId = authorToId.get(authors.get(0));
-                for (int i = 1; i < authors.size(); i++) {
-                    uf.union(firstId, authorToId.get(authors.get(i)));
+                // Exigence Online : Affichage tous les 100 000
+                if (pubCount % 100000 == 0) {
+                    System.out.println("\n--- État à " + pubCount + " publications ---");
+                    System.out.println("Communautés (UF) : " + uf.getCount());
+                    System.out.println("Top 10 tailles : " + uf.getTopCommunitySizes(10));
                 }
             }
-            
-            System.out.println("\nParsing terminé. Génération de l'histogramme...");
-
-            try (PrintWriter writer = new PrintWriter("histogramme_communautes.txt")) {
-                Map<Integer, Integer> hist = uf.getHistogram();
-                writer.println("Taille_Communaute;Nombre_de_Communautes");
-                for (Map.Entry<Integer, Integer> entry : hist.entrySet()) {
-                    writer.println(entry.getKey() + ";" + entry.getValue());
-                }
-            }
-            System.out.println("Histogramme sauvegardé dans 'histogramme_communautes.txt'");
         }
+
+        System.out.println("\n✅ Parsing terminé. Début du traitement Offline...");
+
+        // --- 4. Tâche 2 : Filtrage et Graphe Orienté (Offline) ---
+        CollaborationGraph graph = new CollaborationGraph();
+        for (var entryA : edgeCounts.entrySet()) {
+            int u = entryA.getKey();
+            for (var entryB : entryA.getValue().entrySet()) {
+                if (entryB.getValue() >= 6) { // SEUIL 6
+                    graph.addFilteredEdge(u, entryB.getKey());
+                }
+            }
+        }
+        edgeCounts = null; // Libère la mémoire
+
+        // --- 5. Tâche 2 : Calcul des CFC (Communautés Orientées) ---
+        List<List<Integer>> sccs = graph.findSCCs(nextId);
+        sccs.sort((a, b) -> Integer.compare(b.size(), a.size())); // Trier par taille
+
+        // --- 6. Sorties finales ---
+
+        // Histogramme Tâche 1 (UF)
+        saveHistogram(uf.getHistogram(), "histogramme_tache1.txt");
+
+        // Histogramme Tâche 2 (CFC)
+        Map<Integer, Integer> sccHist = new TreeMap<>();
+        for (List<Integer> scc : sccs) sccHist.put(scc.size(), sccHist.getOrDefault(scc.size(), 0) + 1);
+        saveHistogram(sccHist, "histogramme_tache2.txt");
+
+        // Top 10 Communautés Orientées
+        System.out.println("\n🏆 TOP 10 COMMUNAUTÉS ORIENTÉES (Filtrage >= 6) :");
+        for (int i = 0; i < Math.min(10, sccs.size()); i++) {
+            List<Integer> community = sccs.get(i);
+            int diameter = graph.calculateDiameter(community);
+            
+            System.out.println("\nRank " + (i+1) + " | Taille: " + community.size() + " | Diamètre: " + diameter);
+            System.out.print("Membres: ");
+            for (int id : community) System.out.print(idToAuthor.get(id) + ", ");
+            System.out.println();
+        }
+    }
+
+    private static void saveHistogram(Map<Integer, Integer> hist, String filename) throws IOException {
+        try (PrintWriter writer = new PrintWriter(filename)) {
+            writer.println("Taille;Nombre");
+            hist.forEach((k, v) -> writer.println(k + ";" + v));
+        }
+        System.out.println("📊 Histogramme sauvegardé : " + filename);
     }
 }
