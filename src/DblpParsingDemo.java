@@ -58,10 +58,10 @@ public class DblpParsingDemo {
         if (limit != Long.MAX_VALUE) System.out.println("Limit: " + limit);
 
         long pubCount = 0;
+        Map<String, Integer> authorToId = new HashMap<>();
+        int nextId = 0;
+        AuthorUnionFind uf = new AuthorUnionFind(100000);
 
-        // --------------------------------------------------------------------
-        
-        // --------------------------------------------------------------------
         try (DblpPublicationGenerator gen = new DblpPublicationGenerator(xmlPath, dtdPath, 256)) {
             while (pubCount < limit) {
                 Optional<DblpPublicationGenerator.Publication> opt = gen.nextPublication();
@@ -71,15 +71,27 @@ public class DblpParsingDemo {
                 DblpPublicationGenerator.Publication p = opt.get();
 
                 List<String> authors = p.authors;
-                
                 // On ignore les publications sans auteurs
                 if (authors == null || authors.isEmpty()) {
                     continue;
                 }
 
-                int k = authors.size();
-                System.out.println("Publication #" + pubCount + " (" + k + " auteur(s)):" + authors);
+                for (String name : authors) {
+                    if (!authorToId.containsKey(name)) {
+                        int id = nextId++;
+                        authorToId.put(name, id);
+                        uf.addAuthor(id); 
+                    }
+                }
+
+                int firstId = authorToId.get(authors.get(0));
+                for (int i = 1; i < authors.size(); i++) {
+                    uf.union(firstId, authorToId.get(authors.get(i)));
+                }
             }
+
+            System.out.println("Nombre d'auteurs uniques : " + authorToId.size());
+            System.out.println("Nombre de communautés isolées : " + uf.getCount());
         }
     }
 }
