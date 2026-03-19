@@ -68,6 +68,12 @@ public class DblpParsingDemo {
                 if (opt.isEmpty()) break; 
 
                 pubCount++;
+
+                if (pubCount % 100000 == 0) {
+                    System.out.println("\n--- État à " + pubCount + " publications ---");
+                    System.out.println("Communautés : " + uf.getCount());
+                    System.out.println("Top 10 tailles : " + uf.getTopCommunitySizes(10));
+                }
                 DblpPublicationGenerator.Publication p = opt.get();
 
                 List<String> authors = p.authors;
@@ -89,9 +95,17 @@ public class DblpParsingDemo {
                     uf.union(firstId, authorToId.get(authors.get(i)));
                 }
             }
+            
+            System.out.println("\nParsing terminé. Génération de l'histogramme...");
 
-            System.out.println("Nombre d'auteurs uniques : " + authorToId.size());
-            System.out.println("Nombre de communautés isolées : " + uf.getCount());
+            try (PrintWriter writer = new PrintWriter("histogramme_communautes.txt")) {
+                Map<Integer, Integer> hist = uf.getHistogram();
+                writer.println("Taille_Communaute;Nombre_de_Communautes");
+                for (Map.Entry<Integer, Integer> entry : hist.entrySet()) {
+                    writer.println(entry.getKey() + ";" + entry.getValue());
+                }
+            }
+            System.out.println("Histogramme sauvegardé dans 'histogramme_communautes.txt'");
         }
     }
 }
