@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # On ne définit plus de valeur par défaut ici
 LIMIT=$1
