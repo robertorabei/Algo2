@@ -8,7 +8,7 @@ def generate_binned_histogram(filename, title_prefix, color, output_png):
         print(f"Fichier {filename} non trouvé.")
         return
 
-    #  Lecture des données (Format DBLP : Taille;Nombre)
+    #  Lecture des données
     df = pd.read_csv(filename, sep=";")
 
     # Définition des tranches de tailles
@@ -31,7 +31,7 @@ def generate_binned_histogram(filename, title_prefix, color, output_png):
     plt.figure(figsize=(10, 6))
     bars = plt.bar(cat_labels, counts, color=color, edgecolor="black", alpha=0.8)
 
-    # Configuration des axes (Exigences du rapport )
+    # Configuration des axes
     plt.title(f"{title_prefix} - Distribution des tailles")
     plt.xlabel("Tranches de taille (Nombre d'auteurs)")
     plt.ylabel("Nombre de communautés")
@@ -52,7 +52,7 @@ def generate_binned_histogram(filename, title_prefix, color, output_png):
     plt.grid(axis="y", linestyle="--", alpha=0.4)
     plt.tight_layout()
 
-    # Sauvegarde [cite: 139, 182]
+    # Sauvegarde
     plt.savefig(output_png)
     plt.close()
     print(f"Histogramme généré : {output_png}")
@@ -60,18 +60,18 @@ def generate_binned_histogram(filename, title_prefix, color, output_png):
 
 # --- Exécution ---
 
-# Tâche 1 : Graphe non orienté [cite: 78, 89]
+# Tâche 1 : Graphe non orienté
 generate_binned_histogram(
     "histogramme_tache1.csv",
     "Tâche 1 (Co-publication)",
     "skyblue",
-    "graphique_t1_categories.png",
+    "histogramme_t1_categories.png",
 )
 
-# Tâche 2 : Graphe orienté filtré [cite: 96, 117]
+# Tâche 2 : Graphe orienté filtré
 generate_binned_histogram(
     "histogramme_tache2.csv",
     "Tâche 2 (Orienté Filtré)",
     "salmon",
-    "graphique_t2_categories.png",
+    "histogramme_t2_categories.png",
 )

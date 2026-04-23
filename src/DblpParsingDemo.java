@@ -166,6 +166,8 @@ public class DblpParsingDemo {
                 System.out.print(idToAuthor.get(id) + ", ");
             System.out.println();
         }
+
+        runPythonGraphScript("src/utils/histogramGenerator.py");
     }
 
     private static void saveHistogram(Map<Integer, Integer> hist, String filename) throws IOException {
@@ -173,6 +175,25 @@ public class DblpParsingDemo {
             writer.println("Taille;Nombre");
             hist.forEach((k, v) -> writer.println(k + ";" + v));
         }
-        System.out.println("Histogramme sauvegardé : " + filename);
+        // System.out.println("Histogramme sauvegardé : " + filename);
+    }
+
+    private static void runPythonGraphScript(String scriptPath) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("python3", scriptPath);
+
+            pb.inheritIO();
+
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+
+            if (exitCode == 0) {
+                System.out.println("Histogrammes générés avec succès !");
+            } else {
+                System.err.println("Le script Python a retourné une erreur (code : " + exitCode + ")");
+            }
+        } catch (Exception e) {
+            System.err.println("Impossible de lancer le script Python : " + e.getMessage());
+        }
     }
 }
