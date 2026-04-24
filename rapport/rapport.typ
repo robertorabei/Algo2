@@ -68,11 +68,11 @@ Nous avons privilégié une structure *Union-Find* (Disjoint Set Union) plutôt 
 Ici, nous isolons les noyaux de collaboration stable en filtrant les arêtes et en utilisant un graphe orienté.
 
 === Approche Mixte : Online et Offline
-1. *Phase Online :* Durant la lecture, nous utilisons une table de hachage imbriquée : `HashMap<Integer, HashMap<Integer, Integer>>`. Cette structure creuse permet de comptabiliser les interactions entre auteurs en $O(1)$ sans allouer de mémoire pour les relations inexistantes.
-2. *Phase Offline :* Une fois le parsing terminé, nous filtrons les arêtes dont le poids (nombre de publications communes) est inférieur à 6. Le graphe d'adjacence final n'est construit qu'à partir de ces relations fortes.
+1. *Phase Online :* Conformément à l'énoncé, nous comptabilisons uniquement les paires orientées du premier auteur vers ses co-auteurs ($A \to B$). Nous utilisons une table de hachage imbriquée `HashMap<Integer, HashMap<Integer, Integer>>`. Cette approche ciblée maintient une complexité spatiale par publication de $O(k)$ (où $k$ est le nombre d'auteurs). Elle évite une explosion combinatoire en $O(k^2)$ qui saturerait la mémoire de la JVM (OutOfMemoryError) lors du traitement de publications massives (hyper-authorship).
+2. *Phase Offline :* Une fois le parsing terminé, nous appliquons le seuil exigé en ne conservant que les arêtes de poids $\ge 6$. Lors de la construction de la liste d'adjacence finale, nous utilisons un ensemble `activeNodes` (Set) pour ne mémoriser que les auteurs ayant survécu à ce filtrage strict.
 
 === Analyse des Composantes Fortement Connexes (Tarjan)
-Pour extraire ces noyaux, nous utilisons le concept de *CFC* : un sous-ensemble où chaque nœud peut atteindre tous les autres (réciprocité). Nous avons implémenté l'*algorithme de Tarjan*, optimal car il identifie toutes les CFC en un seul parcours DFS ($O(V+E)$) grâce aux concepts d'index de découverte et de `low-link`.
+Pour extraire ces noyaux, nous utilisons le concept de *CFC* : un sous-ensemble où chaque nœud peut atteindre tous les autres (réciprocité). Nous avons implémenté l'*algorithme de Tarjan*, optimal car il identifie toutes les CFC en un seul parcours DFS ($O(V+E)$) grâce aux concepts d'index de découverte et de `low-link`. Optimisation majeure : Pour garantir des performances optimales et un décompte exact, l'algorithme n'initie sa recherche que sur l'ensemble des activeNodes. Cela nous évite d'exécuter l'algorithme sur l'entièreté des ~4 millions d'auteurs isolés de DBLP et fausser les statistiques. Enfin, chaque composante identifiée, y compris les auteurs de taille 1 ayant survécu au filtrage, est dûment comptabilisée.
 
 = Résultats et Analyse
 
