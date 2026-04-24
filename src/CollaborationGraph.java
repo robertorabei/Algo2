@@ -2,9 +2,12 @@ import java.util.*;
 
 public class CollaborationGraph {
     private final Map<Integer, List<Integer>> adj = new HashMap<>();
+    private final Set<Integer> activeNodes = new HashSet<>();
 
     public void addFilteredEdge(int u, int v) {
         adj.computeIfAbsent(u, k -> new ArrayList<>()).add(v);
+        activeNodes.add(u);
+        activeNodes.add(v);
     }
 
     private int timer = 0;
@@ -16,9 +19,10 @@ public class CollaborationGraph {
         Stack<Integer> stack = new Stack<>();
         List<List<Integer>> sccs = new ArrayList<>();
         Arrays.fill(disc, -1);
+        timer = 0;
 
-        for (int i = 0; i < numNodes; i++) {
-            if (disc[i] == -1 && adj.containsKey(i)) { // On ne visite que si le noeud a des arêtes
+        for (int i : activeNodes) {
+            if (disc[i] == -1) {
                 tarjanDFS(i, disc, low, stack, onStack, sccs);
             }
         }
@@ -52,8 +56,7 @@ public class CollaborationGraph {
                 if (u == node)
                     break;
             }
-            if (component.size() > 1)
-                sccs.add(component);
+            sccs.add(component);
         }
     }
 

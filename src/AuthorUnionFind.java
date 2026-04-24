@@ -15,7 +15,6 @@ public class AuthorUnionFind {
 
     public void addAuthor(int id) {
         ensureCapacity(id);
-        // évite doublons 
         if (size[id] != 0) return;
 
         parent[id] = id;
@@ -34,7 +33,7 @@ public class AuthorUnionFind {
 
     public int find(int i) {
         if (parent[i] != i) {
-            parent[i] = find(parent[i]); // path compression
+            parent[i] = find(parent[i]); 
         }
         return parent[i];
     }
@@ -45,7 +44,6 @@ public class AuthorUnionFind {
 
         if (rootI == rootJ) return;
 
-        // union par taille
         if (size[rootI] < size[rootJ]) {
             parent[rootI] = rootJ;
             size[rootJ] += size[rootI];
