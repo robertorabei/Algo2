@@ -18,3 +18,5 @@ data/
 *.iml
 
 *.txt
+
+.venv/

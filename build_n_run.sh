@@ -15,7 +15,7 @@ if [ $? -eq 0 ]; then
     echo "Compilation réussie."
 
     # On prépare les arguments de base de la commande Java
-    JAVA_ARGS=("-Xmx4g" "-cp" "$BIN_DIR" "DblpParsingDemo" "$DATA_DIR/dblp-2026-01-01.xml.gz" "$DATA_DIR/dblp.dtd")
+    JAVA_ARGS=("-Xmx2g" "-cp" "$BIN_DIR" "DblpParsingDemo" "$DATA_DIR/dblp-2026-01-01.xml.gz" "$DATA_DIR/dblp.dtd")
 
     # Si LIMIT est donné (non vide), on ajoute l'argument --limit
     if [ -n "$LIMIT" ]; then

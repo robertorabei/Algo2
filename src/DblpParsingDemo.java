@@ -138,6 +138,7 @@ public class DblpParsingDemo {
         sccs.sort((a, b) -> Integer.compare(b.size(), a.size())); // Trier par taille
 
         // --- 6. Sorties finales ---
+        // Il faut bien s'assurer que ces lignes utilisent .csv et pas .txt :
 
         // Histogramme Tâche 1 (UF)
         saveHistogram(uf.getHistogram(), "histogramme_tache1.txt");
@@ -146,6 +147,10 @@ public class DblpParsingDemo {
         Map<Integer, Integer> sccHist = new TreeMap<>();
         for (List<Integer> scc : sccs) sccHist.put(scc.size(), sccHist.getOrDefault(scc.size(), 0) + 1);
         saveHistogram(sccHist, "histogramme_tache2.txt");
+
+        // Il faut bien s'assurer que ces lignes utilisent .csv et pas .txt :
+        saveHistogram(uf.getHistogram(), "histogramme_tache1.csv");
+        saveHistogram(sccHist, "histogramme_tache2.csv");
 
         // Top 10 Communautés Orientées
         System.out.println("\n🏆 TOP 10 COMMUNAUTÉS ORIENTÉES (Filtrage >= 6) :");
