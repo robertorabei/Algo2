@@ -123,6 +123,10 @@ public class DblpParsingDemo {
                     System.out.println("Top 10 tailles : " + uf.getTopCommunitySizes(10));
                 }
             }
+            System.out.println("\n===== RÉSUMÉ DU PARSING =====");
+            System.out.println("Nombre total de publications lues : " + pubCount);
+            System.out.println("Nombre total d'auteurs uniques    : " + authorToId.size());
+            System.out.println("==============================\n");
         }
 
         System.out.println("\nParsing terminé. Début du traitement Offline...");

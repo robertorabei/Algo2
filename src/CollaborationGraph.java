@@ -25,7 +25,8 @@ public class CollaborationGraph {
         return sccs;
     }
 
-    private void tarjanDFS(int u, int[] disc, int[] low, Stack<Integer> stack, boolean[] onStack, List<List<Integer>> sccs) {
+    private void tarjanDFS(int u, int[] disc, int[] low, Stack<Integer> stack, boolean[] onStack,
+            List<List<Integer>> sccs) {
         disc[u] = low[u] = timer++;
         stack.push(u);
         onStack[u] = true;
@@ -48,9 +49,11 @@ public class CollaborationGraph {
                 int node = stack.pop();
                 onStack[node] = false;
                 component.add(node);
-                if (u == node) break;
+                if (u == node)
+                    break;
             }
-            if (component.size() > 1) sccs.add(component);
+            if (component.size() > 1)
+                sccs.add(component);
         }
     }
 
