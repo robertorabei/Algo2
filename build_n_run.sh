@@ -8,11 +8,9 @@ DATA_DIR="data"
 
 mkdir -p $BIN_DIR
 
-echo "Compilation du code source dans $BIN_DIR..."
 javac -d $BIN_DIR $SRC_DIR/*.java
 
 if [ $? -eq 0 ]; then
-    echo "Compilation réussie."
 
     # On prépare les arguments de base de la commande Java
     JAVA_ARGS=("-Xmx2g" "-cp" "$BIN_DIR" "DblpParsingDemo" "$DATA_DIR/dblp-2026-01-01.xml.gz" "$DATA_DIR/dblp.dtd")

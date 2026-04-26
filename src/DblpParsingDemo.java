@@ -157,8 +157,12 @@ public class DblpParsingDemo {
                 System.out.print(idToAuthor.get(id) + ", ");
             System.out.println();
         }
+        
+        saveHistogram(uf.getHistogram(), "histogramme_tache1.csv");
+        saveHistogram(sccHist, "histogramme_tache2.csv");
 
         runPythonGraphScript("src/utils/histogramGenerator.py");
+
     }
 
     private static void saveHistogram(Map<Integer, Integer> hist, String filename) throws IOException {
